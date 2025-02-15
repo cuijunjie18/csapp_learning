@@ -1,0 +1,19 @@
+funct3_optim:
+	movss	(%rdx), %xmm1
+	pxor	%xmm2, %xmm2
+	cvtsi2sdl	(%rdi), %xmm2
+	subsd	%xmm2, %xmm0
+	comisd	.LC0(%rip), %xmm0
+	jbe	.L12
+	pxor	%xmm0, %xmm0
+	cvtsi2ssq	%rsi, %xmm0
+	mulss	%xmm1, %xmm0
+	cvtss2sd	%xmm0, %xmm0
+	ret
+.L12:
+	pxor	%xmm0, %xmm0
+	cvtsi2ssq	%rsi, %xmm0
+	addss	%xmm1, %xmm1
+	addss	%xmm1, %xmm0
+	cvtss2sd	%xmm0, %xmm0
+	ret

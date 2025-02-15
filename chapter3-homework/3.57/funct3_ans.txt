@@ -1,0 +1,19 @@
+funct3_ans:
+	movapd	%xmm0, %xmm2
+	movss	(%rdx), %xmm1
+	pxor	%xmm0, %xmm0
+	cvtsi2sdl	(%rdi), %xmm0
+	comisd	%xmm0, %xmm2
+	jbe	.L18
+	pxor	%xmm0, %xmm0
+	cvtsi2ssq	%rsi, %xmm0
+	mulss	%xmm1, %xmm0
+	cvtss2sd	%xmm0, %xmm0
+	ret
+.L18:
+	addss	%xmm1, %xmm1
+	pxor	%xmm0, %xmm0
+	cvtsi2ssq	%rsi, %xmm0
+	addss	%xmm1, %xmm0
+	cvtss2sd	%xmm0, %xmm0
+	ret

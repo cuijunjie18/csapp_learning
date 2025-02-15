@@ -1,0 +1,8 @@
+#!/bin/bash
+# echo "Hello,world!"
+g++ -o test test.cpp
+
+for i in {1..1000}
+do
+    ./test
+done

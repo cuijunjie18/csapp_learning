@@ -1,0 +1,14 @@
+compare_str : "flyers"
+reflect_y : "maduiersnfotvbylSo you think you can stop the bomb with ctrl-c, do you?"
+
+reflect_index
+f : 9
+l : 15 (F)
+y : 14 (E)
+e : 5
+r : 6
+s : 7
+
+只要input_str的对应下标的ascii的 前个4 bytes对应下标即可，
+故可以得到一个hex序列：0x49，0x4F，0x4E，0x45，0x46，0x47
+解码得到字符串序列："IONEFG"
