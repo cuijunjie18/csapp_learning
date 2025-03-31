@@ -1,0 +1,27 @@
+Rotate: Version = naive_rotate: Naive baseline implementation:
+Dim            64   128  256  512  1024         Mean
+Your CPEs      1.0  1.3  3.7  5.0  8.6  
+Baseline CPEs  14.7 40.1 46.4 65.9 94.5 
+Speedup        14.4 30.8 12.5 13.1 11.0 15.2 
+
+Rotate: Version = rotate: Current working version:
+Dim            64   128  256  512  1024         Mean
+Your CPEs      1.0  1.4  3.4  5.3  7.9  
+Baseline CPEs  14.7 40.1 46.4 65.9 94.5 
+Speedup        14.2 28.2 13.6 12.3 11.9 15.2 
+
+Smooth: Version = smooth: Current working version:
+Dim             32      64      128     256     512     Mean
+Your CPEs       18.3    19.1    17.9    18.0    18.5
+Baseline CPEs   695.0   698.0   702.0   717.0   722.0
+Speedup         38.0    36.5    39.3    39.9    39.1    38.5
+
+Smooth: Version = naive_smooth: Naive baseline implementation:
+Dim             32      64      128     256     512     Mean
+Your CPEs       18.7    18.5    17.9    19.1    17.9
+Baseline CPEs   695.0   698.0   702.0   717.0   722.0
+Speedup         37.2    37.7    39.3    37.5    40.4    38.4
+
+Summary of Your Best Scores:
+  Rotate: 15.2 (rotate: Current working version)
+  Smooth: 38.5 (smooth: Current working version)

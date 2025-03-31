@@ -1,0 +1,33 @@
+Teamname: heaven
+Member 1: cjj
+Email 1: 2871843852@qq.com
+Member 2: 666
+Email 2: 666@qq.com
+
+Rotate: Version = naive_rotate: Naive baseline implementation:
+Dim		64	128	256	512	1024	Mean
+Your CPEs	1.0	1.3	3.8	4.9	8.0
+Baseline CPEs	14.7	40.1	46.4	65.9	94.5
+Speedup		14.9	29.9	12.2	13.5	11.8	15.4
+
+Rotate: Version = rotate: 8 x 1 loop expand:
+Dim		64	128	256	512	1024	Mean
+Your CPEs	1.0	1.5	3.8	5.0	7.7
+Baseline CPEs	14.7	40.1	46.4	65.9	94.5
+Speedup		15.3	26.7	12.1	13.3	12.2	15.2
+
+
+ERROR: Dimension=96, 9216 errors
+E.g., 
+You have dst[95][95].{red,green,blue} = {56140,17306,12380}
+It should be dst[95][95].{red,green,blue} = {48499,19367,28959}
+Benchmark "smooth: 8 x 1 loop expand" failed correctness check for dimension 96.
+Smooth: Version = naive_smooth: Naive baseline implementation:
+Dim		32	64	128	256	512	Mean
+Your CPEs	18.1	18.2	15.8	17.9	17.9
+Baseline CPEs	695.0	698.0	702.0	717.0	722.0
+Speedup		38.3	38.4	44.4	40.1	40.3	40.2
+
+Summary of Your Best Scores:
+  Rotate: 15.4 (naive_rotate: Naive baseline implementation)
+  Smooth: 40.2 (naive_smooth: Naive baseline implementation)
