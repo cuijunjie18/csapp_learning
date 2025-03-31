@@ -1,0 +1,63 @@
+                            | # Execution begins at address 0x00
+0x000:                      |     .pos 0x0000
+0x000: 30f40002000000000000 |     irmovq  stack,%rsp      # set up stack pointer
+0x00a: 803800000000000000   |     call main               # execute main program
+0x013: 00                   |     halt                    # Terminate program
+                            | 
+                            | # Array of 4 elements for Test bubble_sort
+0x018:                      |     .align 8
+0x018:                      | array:
+0x018: 0400000000000000     |     .quad   0x0000000000000004
+0x020: 0300000000000000     |     .quad   0x0000000000000003
+0x028: 0200000000000000     |     .quad   0x0000000000000002
+0x030:                      | array_end:
+0x030: 0100000000000000     |     .quad   0x0000000000000001
+                            | 
+                            | # main function
+0x038:                      | main: 
+0x038: 30f71800000000000000 |     irmovq  array,%rdi  # make &array[0] as first argument of bubble_sort
+0x042: 30f63000000000000000 |     irmovq  array_end,%rsi     # second argument
+0x04c: 805600000000000000   |     call bubble_sort
+0x055: 90                   |     ret
+                            | 
+                            | # void bubble_p(long* data, long count)
+                            | # data in %rdi, count in %rsi
+0x056:                      | bubble_sort:
+                            |     # leaq	-8(%rdi,%rsi,8), %rsi       # get (data + 8 * count - 8) to last
+                            | 	# Y86-64没有这个指令，发现%rsi这一步是变成data_end，干脆直接传
+0x056: 70b500000000000000   | 	jmp	L18
+0x05f:                      | L19:
+                            | 	# addq	$8, %rax
+                            | 	# 不能加常数
+0x05f: 30f80800000000000000 | 	irmovq	$8, %r8
+0x069: 6080                 | 	addq	%r8, %rax
+0x06b:                      | L21:
+0x06b: 2003                 | 	rrmovq	%rax, %rbx
+0x06d: 6163                 | 	subq	%rsi, %rbx                  
+0x06f: 75b300000000000000   | 	jge	L23                            # if i >= last
+                            |     # begin exchange
+0x078: 50200800000000000000 | 	mrmovq	8(%rax), %rdx               # i + 1
+0x082: 50100000000000000000 | 	mrmovq	(%rax), %rcx                # i
+0x08c: 2023                 | 	rrmovq	%rdx, %rbx
+0x08e: 6113                 | 	subq	%rcx, %rbx
+0x090: 2219                 |     cmovl   %rcx, %r9                  # three steps exchange two value of registers
+0x092: 2221                 |     cmovl   %rdx, %rcx
+0x094: 2292                 |     cmovl   %r9, %rdx
+0x096: 40100000000000000000 |     rmmovq  %rcx, (%rax)
+0x0a0: 40200800000000000000 |     rmmovq  %rdx, 8(%rax)
+                            |     # end exchange
+0x0aa: 705f00000000000000   | 	jmp	L19
+0x0b3:                      | L23:
+0x0b3: 6186                 | 	subq	%r8, %rsi                    # last - 8
+0x0b5:                      | L18:
+0x0b5: 2063                 | 	rrmovq	%rsi, %rbx
+0x0b7: 6173                 | 	subq	%rdi, %rbx                  
+0x0b9: 71cd00000000000000   | 	jle	L24                            # if last <= data
+0x0c2: 2070                 | 	rrmovq	%rdi, %rax                  # data to i
+0x0c4: 706b00000000000000   | 	jmp	L21
+0x0cd:                      | L24:
+0x0cd: 90                   | 	ret
+                            | 
+                            | # stack region
+0x200:                      |     .pos 0x200
+0x200:                      | stack: 

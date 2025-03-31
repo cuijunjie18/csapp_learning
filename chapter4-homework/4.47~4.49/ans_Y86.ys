@@ -1,0 +1,59 @@
+# Execution begins at address 0x00
+    .pos 0x0000
+    irmovq  stack,%rsp      # set up stack pointer
+    call main               # execute main program
+    halt                    # Terminate program
+
+# Array of 4 elements for Test bubble_sort
+    .align 8
+array:
+    .quad   0x0000000000000004
+    .quad   0x0000000000000003
+    .quad   0x0000000000000002
+array_end:
+    .quad   0x0000000000000001
+
+# main function
+main: 
+    irmovq  array,%rdi  # make &array[0] as first argument of bubble_sort
+    irmovq  array_end,%rsi     # second argument
+    call bubble_sort
+    ret
+
+# void bubble_p(long* data, long count)
+# data in %rdi, count in %rsi
+bubble_sort:
+    # leaq	-8(%rdi,%rsi,8), %rsi       # get (data + 8 * count - 8) to last
+	# Y86-64没有这个指令，发现%rsi这一步是变成data_end，干脆直接传
+	jmp	L18
+L19:
+	# addq	$8, %rax
+	# 不能加常数
+	irmovq	$8, %r8
+	addq	%r8, %rax
+L21:
+	rrmovq	%rax, %rbx
+	subq	%rsi, %rbx                  
+	jge	L23                            # if i >= last
+	mrmovq	8(%rax), %rdx               # i + 1
+	mrmovq	(%rax), %rcx                # i
+	rrmovq	%rdx, %rbx
+	subq	%rcx, %rbx
+	jge	L19
+	rmmovq	%rcx, 8(%rax)
+	rmmovq	%rdx, (%rax)
+	jmp	L19
+L23:
+	subq	%r8, %rsi                    # last - 8
+L18:
+	rrmovq	%rsi, %rbx
+	subq	%rdi, %rbx                  
+	jle	L24                            # if last <= data
+	rrmovq	%rdi, %rax                  # data to i
+	jmp	L21
+L24:
+	ret
+
+# stack region
+    .pos 0x200
+stack: 

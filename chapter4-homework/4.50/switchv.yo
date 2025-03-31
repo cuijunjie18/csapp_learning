@@ -1,0 +1,80 @@
+                            | # Execution begins at address 0x00
+0x000:                      |     .pos 0
+0x000: 30f40003000000000000 |     irmovq  stack,%rsp      # set up stack pointer
+0x00a: 809400000000000000   |     call main               # execute main program
+0x013: 00                   |     halt                    # Terminate program
+                            | 
+                            | # Array of 4 elements for switchv's result
+0x018:                      |     .align 8
+0x018:                      | array:
+0x018: aa0a000000000000     |     .quad   0x0000000000000aaa      
+0x020: bb0b000000000000     |     .quad   0x0000000000000bbb
+0x028: cc0c000000000000     |     .quad   0x0000000000000ccc
+0x030:                      | array_end:
+0x030: dd0d000000000000     |     .quad   0x0000000000000ddd
+                            | 
+                            | # jmp table for switch
+0x038:                      |     .align 8
+0x038:                      | table:
+0x038: 6800000000000000     |     .quad   L0      # idx = 0
+0x040: 8900000000000000     |     .quad   default # idx = 1
+0x048: 7300000000000000     |     .quad   L2      # idx = 2
+0x050: 7e00000000000000     |     .quad   L3      # idx = 3
+0x058: 8900000000000000     |     .quad   default # idx = 4
+0x060: 7300000000000000     |     .quad   L2      # idx = 5
+                            | 
+                            | # each function for table address
+0x068:                      | L0:
+0x068: 50030000000000000000 |     mrmovq  (%rbx),%rax
+0x072: 90                   |     ret
+0x073:                      | L2:
+0x073: 50030800000000000000 |     mrmovq  8(%rbx),%rax
+0x07d: 90                   |     ret
+0x07e:                      | L3:
+0x07e: 50031000000000000000 |     mrmovq  0x10(%rbx),%rax
+0x088: 90                   |     ret
+0x089:                      | default:
+0x089: 50031800000000000000 |     mrmovq  0x18(%rbx),%rax
+0x093: 90                   |     ret
+                            | 
+0x094:                      | main:
+0x094: 30f70000000000000000 |     irmovq  $0,%rdi             # id = 0
+0x09e: 80da00000000000000   |     call switchv
+0x0a7: 63bb                 |     xorq    %r11,%r11
+0x0a9: 200b                 |     rrmovq  %rax,%r11           # save ans1
+0x0ab: 30f70200000000000000 |     irmovq  $2,%rdi             # id = 2
+0x0b5: 80da00000000000000   |     call switchv
+0x0be: 63cc                 |     xorq    %r12,%r12
+0x0c0: 200c                 |     rrmovq  %rax,%r12           # save ans2
+0x0c2: 30f70700000000000000 |     irmovq  $7,%rdi             # id = 7
+0x0cc: 63dd                 |     xorq    %r13,%r13
+0x0ce: 80da00000000000000   |     call switchv
+0x0d7: 200d                 |     rrmovq  %rax,%r13           # save ans3
+0x0d9: 90                   |     ret
+                            | 
+                            | # long switchv(long id)
+                            | # id in %rdi
+0x0da:                      | switchv:
+0x0da: 30f31800000000000000 |     irmovq  array,%rbx          # set array address to %rbx
+0x0e4: 30f13800000000000000 |     irmovq  table,%rcx          # set table address to %rcx
+0x0ee: 30f80500000000000000 |     irmovq  $5,%r8
+0x0f8: 2079                 |     rrmovq  %rdi,%r9
+0x0fa: 6189                 |     subq    %r8,%r9
+0x0fc: 30f80100000000000000 |     irmovq  $1,%r8              # movq don't change CC
+0x106: 30f90800000000000000 |     irmovq  $8,%r9
+0x110: 763101000000000000   |     jg  ald
+0x119:                      | test:
+0x119: 6277                 |     andq    %rdi,%rdi
+0x11b: 733301000000000000   |     je allocate_fun
+0x124: 6091                 |     addq    %r9,%rcx            # table address + 8
+0x126: 6187                 |     subq    %r8,%rdi            # id--
+0x128: 701901000000000000   |     jmp test
+0x131:                      | ald:
+0x131: 6091                 |     addq    %r9,%rcx            # table + 1 point to default
+0x133:                      | allocate_fun:
+0x133: 50110000000000000000 |     mrmovq   (%rcx),%rcx        # get the address which be pointed by (table + 8 * idx) 
+0x13d: a01f                 |     pushq    %rcx               # let (table + idx * 8) be the next %rip point 
+0x13f:                      | return:
+0x13f: 90                   |     ret     
+0x300:                      |     .pos 0x300
+0x300:                      | stack:

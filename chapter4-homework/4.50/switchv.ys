@@ -1,0 +1,80 @@
+# Execution begins at address 0x00
+    .pos 0
+    irmovq  stack,%rsp      # set up stack pointer
+    call main               # execute main program
+    halt                    # Terminate program
+
+# Array of 4 elements for switchv's result
+    .align 8
+array:
+    .quad   0x0000000000000aaa      
+    .quad   0x0000000000000bbb
+    .quad   0x0000000000000ccc
+array_end:
+    .quad   0x0000000000000ddd
+
+# jmp table for switch
+    .align 8
+table:
+    .quad   L0      # idx = 0
+    .quad   default # idx = 1
+    .quad   L2      # idx = 2
+    .quad   L3      # idx = 3
+    .quad   default # idx = 4
+    .quad   L2      # idx = 5
+
+# each function for table address
+L0:
+    mrmovq  (%rbx),%rax
+    ret
+L2:
+    mrmovq  8(%rbx),%rax
+    ret
+L3:
+    mrmovq  0x10(%rbx),%rax
+    ret
+default:
+    mrmovq  0x18(%rbx),%rax
+    ret
+
+main:
+    irmovq  $0,%rdi             # id = 0
+    call switchv
+    xorq    %r11,%r11
+    rrmovq  %rax,%r11           # save ans1
+    irmovq  $2,%rdi             # id = 2
+    call switchv
+    xorq    %r12,%r12
+    rrmovq  %rax,%r12           # save ans2
+    irmovq  $7,%rdi             # id = 7
+    xorq    %r13,%r13
+    call switchv
+    rrmovq  %rax,%r13           # save ans3
+    ret
+
+# long switchv(long id)
+# id in %rdi
+switchv:
+    irmovq  array,%rbx          # set array address to %rbx
+    irmovq  table,%rcx          # set table address to %rcx
+    irmovq  $5,%r8
+    rrmovq  %rdi,%r9
+    subq    %r8,%r9
+    irmovq  $1,%r8              # movq don't change CC
+    irmovq  $8,%r9
+    jg  ald
+test:
+    andq    %rdi,%rdi
+    je allocate_fun
+    addq    %r9,%rcx            # table address + 8
+    subq    %r8,%rdi            # id--
+    jmp test
+ald:
+    addq    %r9,%rcx            # table + 1 point to default
+allocate_fun:
+    mrmovq   (%rcx),%rcx        # get the address which be pointed by (table + 8 * idx) 
+    pushq    %rcx               # let (table + idx * 8) be the next %rip point 
+return:
+    ret     
+    .pos 0x300
+stack:
