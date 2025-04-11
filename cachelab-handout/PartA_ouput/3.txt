@@ -1,0 +1,10 @@
+make: 'csim' is up to date.
+(s,E,b) = 2 1 4
+file = traces/dave.trace
+
+L 10,4 miss 
+S 18,4 hit 
+L 20,4 miss 
+S 28,4 hit 
+S 50,4 miss eviction 
+hits:2 misses:3 evictions:1

@@ -1,0 +1,265 @@
+/*
+author : cuijunjie18
+date : 
+*/
+
+// 忽略所有I开头的指令加载
+
+#include "cachelab.h"
+#include <getopt.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#define llu unsigned long long
+
+// 命令行参数
+int S = 0,E = 1,B = 0;
+int verbose = 1; // 是否单步输出结果
+int debug = 0; // 启动调试
+
+// cache大小相关变量
+int address_size = 36; // 地址值为36位二进制
+int b_size = 3,s_size = 2,t_size = 0,valid_bit = 1;
+int T = 8; // 标志区域用long long 存
+int row_size = 0; // 一行的字节数
+int cache_size = 0; // cache总大小
+unsigned* cache;
+unsigned* row_frame; // 行的时间戳数组
+
+int frame_id = 0; // 时间戳
+
+// // 状态
+// enum run_state{HIT,MISS,EVICT,NONE};
+
+int hits,misses,evictions;
+
+void show_bytes(llu x){
+    int nums[65];
+    int cnt = 0;
+    if (x == 0) printf("0");
+    while (x){
+        nums[++cnt] = x % 2;
+        x /= 2;
+    }
+    for (int i = cnt; i >= 1; i--) printf("%d",nums[i]);
+    printf(" ");
+}
+
+void Get_input(int argc,char *argv[],int *s_size,int *E,int *b_size, char **tracefile,int *verbose){
+    int opt;
+    // 定义选项字符串：h和v是标志，s/E/b/t需要参数
+    const char *optstring = "hdvs:E:b:t:";
+    while ((opt = getopt(argc, argv, optstring)) != -1) {
+        switch (opt) {
+            case 's':
+                *s_size = atoi(optarg);  // 将字符串参数转为整数
+                break;
+            case 'E':
+                *E = atoi(optarg);
+                break;
+            case 'b':
+                *b_size = atoi(optarg);
+                break;
+            case 't':
+                *tracefile = optarg;  // 直接保存文件路径
+                break;
+            case 'v':
+                *verbose = 1;        // 设置详细模式标志
+                break;
+            case 'd':
+                debug = 1;  //启动调试模式
+                break;
+            case 'h':
+                printf("Usage: %s -s <s> -E <E> -b <b> -t <tracefile>\n", argv[0]);
+                exit(0);
+            case '?':
+                // 处理错误选项或缺少参数
+                fprintf(stderr, "Unknown option: -%c\n", optopt);
+                exit(1);
+            default:
+                fprintf(stderr, "Unexpected error\n");
+                exit(1);
+        }
+    }
+    // printf("%s\n",*tracefile);
+    if (*s_size == 0 || *E == 0 || *b_size == 0 || *tracefile == NULL){
+        printf("Usage: %s -s <s> -E <E> -b <b> -t <tracefile>\n", argv[0]);
+        exit(1);
+    }
+}
+
+void cache_init(){
+    cache = (unsigned*) malloc(cache_size);
+    row_frame = (unsigned*) malloc(row_size);
+    memset(cache,0,cache_size); // 全部设置为0
+    memset(row_frame,0,row_size);
+}
+
+// 驱逐机制
+void LRU(llu t,llu s,llu b){
+    unsigned *p = cache + s * E * row_size;
+    unsigned *r = row_frame + s * E;
+    int minn = 0;
+    int index = 0;
+    for (int i = 0; i < E; i++){
+        if (r[i] < minn){
+            minn = r[i];
+            index = i;
+        }
+    }
+    r[index] = frame_id;
+    p += index * row_size;
+    p[1] = t / 1000000000;
+    p[2] = t % 1000000000;
+}
+
+// 加载到缓存
+void load_to_cache(llu t,llu s,llu b){
+    int flag = 0; // 是否有空行
+    unsigned *p = cache + s * E * row_size;
+    unsigned *r = row_frame + s * E;
+
+    // 在当前组查找空行
+    for (int i = 0; i < E; i++){
+        if (*p == 1){
+            p += row_size;
+            r++;
+            continue;
+        }
+        flag = 1; // 找到空行
+
+        // 更新valid与label
+        *p = 1;
+        p[1] = t / 1000000000;
+        p[2] = t % 1000000000;
+        *r = frame_id; // 记录时间戳
+        break;
+    }
+    if (!flag){
+        evictions++;
+        if (verbose) printf("miss eviction ");
+        LRU(t,s,b);
+    }
+    else{
+        if (verbose) printf("miss ");
+    }
+    return;
+}
+
+// cache匹配
+void Find(llu t,llu s,llu b){
+    frame_id++; // 时间戳++
+
+    unsigned *p = cache + s * E * row_size;
+    unsigned *r = row_frame + s * E;
+    int flag = 0; // 是否找到
+    llu label = 0;
+    // enum run_state state = NONE; // 当前状态
+
+    // 对当前组的每一行进行标志位匹配
+    for (int i = 0; i < E; i++){
+        // valid = 0,未缓存
+        if (*p == 0){
+            p += row_size;
+            r++;
+            continue; 
+        }
+        label = p[1] * 1000000000 + p[2]; // 构造label
+        if (label == t){
+            flag = 1;
+            *r = frame_id; // 记录时间戳
+            break;
+        }
+        p += row_size;
+        r++;
+    }
+    if (!flag){
+        misses++; // miss
+        load_to_cache(t,s,b);
+        // printf("Find nothing!");
+    }
+    else{
+        hits++; // hit
+        if (verbose) printf("hit ");
+    }
+    return;
+}
+
+void Run_trace(FILE* fp){
+    char opcode;
+    llu address;
+    int data_size; // 一般来说是数据对齐的，所以4个字节与8个字节的数据基本不会加载到两个不同的行中
+    llu t,s,b;
+    unsigned mask_b = 1;
+
+    for (int i = 1,j = 1; i <= b_size; i++, j <<= 1) mask_b |= j;   
+    while (fscanf(fp," %c %llx,%d",&opcode,&address,&data_size) > 0){
+        if (verbose) printf("%c %llx %d ",opcode,address,data_size);
+        t = address >> (s_size + b_size); // 截取高位
+        b = address & mask_b; // 截取低位
+        s = (address ^ (t << (s_size + b_size)) ^ b) >> b_size; // 计算中位
+        if (debug){
+            printf("Debug:");
+            printf("address = ");
+            show_bytes(address);
+            printf("t = ");
+            show_bytes(t);
+            printf("s = ");
+            show_bytes(s);
+            printf("b = ");
+            show_bytes(b);
+        }
+        switch (opcode) {
+            case 'S':
+                Find(t,s,b);
+                break;
+            case 'L':
+                Find(t,s,b);
+                break;
+            case 'M':
+                Find(t,s,b);
+                Find(t,s,b);
+                break;
+            default:
+                break;
+        }
+        if (verbose) printf("\n");
+        // fflush(stdout);
+    }
+}
+
+int main(int argc,char *argv[])
+{
+    // char **tracefile = (char**)malloc(sizeof(char*));
+    // *tracefile = NULL;
+
+    // Get_input(argc,argv,&s_size,&E,&b_size,tracefile,&verbose); // 解析命令行参数
+
+    // 分配cache空间
+    t_size = address_size - b_size - s_size;
+    S = pow(2,s_size);
+    B = pow(2,b_size);
+    T = 8 ; // 标志区域long long 存
+    row_size = B + T + valid_bit; // 一行的字节数
+    cache_size = S * E * row_size;
+    cache_init();
+    printf("%d %d %d\n",t_size,s_size,b_size);
+
+    // 读取文件
+    FILE* fp = NULL;
+    // char prefix[20] = "traces/";
+    // char *file_name = strcat(prefix,*tracefile); // 注意strcat不要重复调用
+    // printf("%s\n",file_name);
+    char file_name[50] = "traces/trans.trace";
+    fp = fopen(file_name,"r");
+    if (fp == NULL){
+        printf("Fail to open %s\n",file_name);
+        exit(1);
+    }
+
+    Run_trace(fp); // 执行
+    printSummary(hits, misses, evictions); // 结果
+    fclose(fp);
+    return 0;
+}

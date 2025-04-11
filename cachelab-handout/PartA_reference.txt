@@ -1,0 +1,33 @@
+                        Your simulator     Reference simulator
+Points (s,E,b)    Hits  Misses  Evicts    Hits  Misses  Evicts
+     0 (1,1,1)       0       0       0       9       8       6  traces/yi2.trace
+     0 (4,2,4)       0       0       0       4       5       2  traces/yi.trace
+     0 (2,1,4)       0       0       0       2       3       1  traces/dave.trace
+     0 (2,1,3)       0       0       0     167      71      67  traces/trans.trace
+     0 (2,2,3)       0       0       0     201      37      29  traces/trans.trace
+     0 (2,4,3)       0       0       0     212      26      10  traces/trans.trace
+     1 (5,1,5)       0       0       0     231       7       0  traces/trans.trace
+     0 (5,1,5)       0       0       0  265189   21775   21743  traces/long.trace
+
+TEST_CSIM_RESULTS=1
+
+
+./csim-ref [-hv] -s <s> -E <E> -b <b> -t <tracefile> 
+
+
+L 10,1 miss 
+M 20,1 miss hit 
+L 22,1 hit 
+S 18,1 hit 
+L 110,1 miss 
+L 210,1 miss 
+M 12,1 hit hit 
+hits:5 misses:4 evictions:0
+
+
+L 10,4 miss 
+S 18,4 miss eviction 
+L 20,4 miss eviction 
+S 28,4 miss eviction 
+S 50,4 miss eviction 
+hits:0 misses:5 evictions:4
