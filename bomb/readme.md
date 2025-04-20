@@ -13,6 +13,9 @@ origin_readme：This is an x86-64 bomb for self-study students.
 
 理解**sscanf()函数和read_six_numbers()**的工作原理，然后判断字符串至少包含的整型个数，然后分析phase_2的工作逻辑即可，是一个判断后面整数是前面两倍的逻辑.
 
+read_six_numbers()将sscanf得到的nums放入当前的rsp起点的4字节数组中  
+sscanf()需要一个格式字符串(存在地址%rsi)与一个输入字符串(存在地址%rdi中)
+
 #### (3) bomb_3
 
 依旧是考察**sscanf()函数**的工作原理，分析phase_3的工作逻辑即可，是先确定第一个整型的范围，发现是个小范围，对于每个可能取值，汇编代码中均有跳转，每个跳转会得到第二个整型.
@@ -28,8 +31,19 @@ origin_readme：This is an x86-64 bomb for self-study students.
 
 #### (6) bomb_6
 
-unfinished!
+~~unfinished!~~
+
+确定6个数，且6个数互不相同，且 0 < x <= 6，故是1,2,3,4,5,6的排列，通过链表排序得到答案.
 
 #### (7) secret_bomb
 
-unfinished!
+~~unfinished!~~
+
+进入方式：最后的一个phase_defused中进入，要求inputs_str + 240 通过 sscanf()转化为"%d %d %s"格式
+
+![](images/a.png)
+
+发现每个phase阶段input_strings的位置都会移动，而input_strings + 240对应phase_4的输入，故对phase_4的输入修改即可.
+
+发现phase_4中添加的字符串应该为"DrEvil"
+
