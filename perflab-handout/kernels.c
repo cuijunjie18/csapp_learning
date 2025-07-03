@@ -51,25 +51,44 @@ void naive_rotate(int dim, pixel *src, pixel *dst)
 char rotate_descr[] = "rotate: 8 x 1 loop expand";
 void rotate(int dim, pixel *src, pixel *dst) 
 {
-    // printf("Begin %d rotate!\n",dim);
-    int i,j;
-
-    /*8 x 1*/
-    for (i = 0; i < dim; i++){
-        for (j = 0; j + 7 < dim; j += 8){
-            dst[RIDX(dim-1-j, i, dim)] = src[RIDX(i, j, dim)];
-            dst[RIDX(dim-1-j-1, i, dim)] = src[RIDX(i, j + 1, dim)];
-            dst[RIDX(dim-1-j-2, i, dim)] = src[RIDX(i, j + 2, dim)];
-            dst[RIDX(dim-1-j-3, i, dim)] = src[RIDX(i, j + 3, dim)];
-            dst[RIDX(dim-1-j-4, i, dim)] = src[RIDX(i, j + 4, dim)];
-            dst[RIDX(dim-1-j-5, i, dim)] = src[RIDX(i, j + 5, dim)];
-            dst[RIDX(dim-1-j-6, i, dim)] = src[RIDX(i, j + 6, dim)];
-            dst[RIDX(dim-1-j-7, i, dim)] = src[RIDX(i, j + 7, dim)];
+    for (int i = 0; i < dim; i += 32){
+        for (int j = 0; j < dim; j += 32){
+            for (int k = i; k < i+32; k++){
+                dst[RIDX(dim-1-j, k, dim)] = src[RIDX(k, j+0, dim)];
+                dst[RIDX(dim-2-j, k, dim)] = src[RIDX(k, j+1, dim)];
+                dst[RIDX(dim-3-j, k, dim)] = src[RIDX(k, j+2, dim)];
+                dst[RIDX(dim-4-j, k, dim)] = src[RIDX(k, j+3, dim)];
+                dst[RIDX(dim-5-j, k, dim)] = src[RIDX(k, j+4, dim)];
+                dst[RIDX(dim-6-j, k, dim)] = src[RIDX(k, j+5, dim)];
+                dst[RIDX(dim-7-j, k, dim)] = src[RIDX(k, j+6, dim)];
+                dst[RIDX(dim-8-j, k, dim)] = src[RIDX(k, j+7, dim)];
+                dst[RIDX(dim-9-j, k, dim)] = src[RIDX(k, j+8, dim)];
+                dst[RIDX(dim-10-j, k, dim)] = src[RIDX(k, j+9, dim)];
+                dst[RIDX(dim-11-j, k, dim)] = src[RIDX(k, j+10, dim)];
+                dst[RIDX(dim-12-j, k, dim)] = src[RIDX(k, j+11, dim)];
+                dst[RIDX(dim-13-j, k, dim)] = src[RIDX(k, j+12, dim)];
+                dst[RIDX(dim-14-j, k, dim)] = src[RIDX(k, j+13, dim)];
+                dst[RIDX(dim-15-j, k, dim)] = src[RIDX(k, j+14, dim)];
+                dst[RIDX(dim-16-j, k, dim)] = src[RIDX(k, j+15, dim)];
+                dst[RIDX(dim-17-j, k, dim)] = src[RIDX(k, j+16, dim)];
+                dst[RIDX(dim-18-j, k, dim)] = src[RIDX(k, j+17, dim)];
+                dst[RIDX(dim-19-j, k, dim)] = src[RIDX(k, j+18, dim)];
+                dst[RIDX(dim-20-j, k, dim)] = src[RIDX(k, j+19, dim)];
+                dst[RIDX(dim-21-j, k, dim)] = src[RIDX(k, j+20, dim)];
+                dst[RIDX(dim-22-j, k, dim)] = src[RIDX(k, j+21, dim)];
+                dst[RIDX(dim-23-j, k, dim)] = src[RIDX(k, j+22, dim)];
+                dst[RIDX(dim-24-j, k, dim)] = src[RIDX(k, j+23, dim)];
+                dst[RIDX(dim-25-j, k, dim)] = src[RIDX(k, j+24, dim)];
+                dst[RIDX(dim-26-j, k, dim)] = src[RIDX(k, j+25, dim)];
+                dst[RIDX(dim-27-j, k, dim)] = src[RIDX(k, j+26, dim)];
+                dst[RIDX(dim-28-j, k, dim)] = src[RIDX(k, j+27, dim)];
+                dst[RIDX(dim-29-j, k, dim)] = src[RIDX(k, j+28, dim)];
+                dst[RIDX(dim-30-j, k, dim)] = src[RIDX(k, j+29, dim)];
+                dst[RIDX(dim-31-j, k, dim)] = src[RIDX(k, j+30, dim)];
+                dst[RIDX(dim-32-j, k, dim)] = src[RIDX(k, j+31, dim)];
+            }
         }
-        for (; j < dim; j++) dst[RIDX(dim-1-j, i, dim)] = src[RIDX(i, j, dim)];
     }
-
-    // printf("Finish rotate!\n");
 }
 
 /*********************************************************************
@@ -211,24 +230,56 @@ static pixel optim_avg(int dim, int i, int j, pixel *src){
     return current_pixel;
 }
 
+static void set_corner(int cc, pixel *src, pixel *dst, int a1, int a2, int a3){
+    dst[cc].blue = (src[cc].blue+src[a1].blue+src[a2].blue+src[a3].blue) >> 2;
+    dst[cc].green = (src[cc].green+src[a1].green+src[a2].green+src[a3].green) >> 2;
+    dst[cc].red = (src[cc].red+src[a1].red+src[a2].red+src[a3].red) >> 2;
+}
+static void set_top(int dim, pixel *src, pixel *dst, int j){
+    dst[j].blue = (src[j].blue+src[j+dim].blue+src[j-1].blue+src[j+1].blue+src[j+dim-1].blue+src[j+dim+1].blue)/6;
+    dst[j].green = (src[j].green+src[j+dim].green+src[j-1].green+src[j+1].green+src[j+dim-1].green+src[j+dim+1].green)/6;
+    dst[j].red = (src[j].red+src[j+dim].red+src[j-1].red+src[j+1].red+src[j+dim-1].red+src[j+dim+1].red)/6;
+}
+static void set_bottom(int dim, pixel *src, pixel *dst, int j){
+    dst[j].blue = (src[j].blue+src[j-dim].blue+src[j-1].blue+src[j+1].blue+src[j-dim-1].blue+src[j-dim+1].blue)/6;
+    dst[j].green = (src[j].green+src[j-dim].green+src[j-1].green+src[j+1].green+src[j-dim-1].green+src[j-dim+1].green)/6;
+    dst[j].red = (src[j].red+src[j-dim].red+src[j-1].red+src[j+1].red+src[j-dim-1].red+src[j-dim+1].red)/6;
+}
+static void set_left(int dim, pixel *src, pixel *dst, int i){
+    dst[i].blue = (src[i].blue+src[i-dim].blue+src[i-dim+1].blue+src[i+1].blue+src[i+dim].blue+src[i+dim+1].blue)/6;
+    dst[i].green = (src[i].green+src[i-dim].green+src[i-dim+1].green+src[i+1].green+src[i+dim].green+src[i+dim+1].green)/6;
+    dst[i].red = (src[i].red+src[i-dim].red+src[i-dim+1].red+src[i+1].red+src[i+dim].red+src[i+dim+1].red)/6;
+}
+static void set_right(int dim, pixel *src, pixel *dst, int i){
+    dst[i].blue = (src[i].blue+src[i-dim].blue+src[i-dim-1].blue+src[i-1].blue+src[i+dim].blue+src[i+dim-1].blue)/6;
+    dst[i].green = (src[i].green+src[i-dim].green+src[i-dim-1].green+src[i-1].green+src[i+dim].green+src[i+dim-1].green)/6;
+    dst[i].red = (src[i].red+src[i-dim].red+src[i-dim-1].red+src[i-1].red+src[i+dim].red+src[i+dim-1].red)/6;
+}
+static void set_in(int dim, pixel *src, pixel *dst, int k){
+    dst[k].blue = (src[k].blue+src[k-1].blue+src[k+1].blue+src[k+dim-1].blue+src[k+dim].blue+src[k+dim+1].blue+src[k-dim-1].blue+src[k-dim].blue+src[k-dim+1].blue)/9;
+    dst[k].green = (src[k].green+src[k-1].green+src[k+1].green+src[k+dim-1].green+src[k+dim].green+src[k+dim+1].green+src[k-dim-1].green+src[k-dim].green+src[k-dim+1].green)/9;
+    dst[k].red = (src[k].red+src[k-1].red+src[k+1].red+src[k+dim-1].red+src[k+dim].red+src[k+dim+1].red+src[k-dim-1].red+src[k-dim].red+src[k-dim+1].red)/9;
+}
 void smooth(int dim, pixel *src, pixel *dst) 
 {
-    // printf("Begin %d smooth!\n",dim);
-    int i,j;
-    for (i = 0; i < dim; i++){
-        for (j = 0; j + 7 < dim; j += 8){
-            // dst[RIDX(i, j, dim)] = optim_avg(dim, i, j, src);
-            dst[RIDX(i, j, dim)] = optim_avg(dim, i, j, src);
-            dst[RIDX(i, j + 1, dim)] = optim_avg(dim, i, j + 1, src);
-            dst[RIDX(i, j + 2, dim)] = optim_avg(dim, i, j + 2, src);
-            dst[RIDX(i, j + 3, dim)] = optim_avg(dim, i, j + 3, src);
-            dst[RIDX(i, j + 4, dim)] = optim_avg(dim, i, j + 4, src);
-            dst[RIDX(i, j + 5, dim)] = optim_avg(dim, i, j + 5, src);
-            dst[RIDX(i, j + 6, dim)] = optim_avg(dim, i, j + 6, src);
-            dst[RIDX(i, j + 7, dim)] = optim_avg(dim, i, j + 7, src);
-        }
-        for (; j < dim; j++) dst[RIDX(i, j, dim)] = optim_avg(dim, i, j, src);
+    // 处理四个角
+    set_corner(0, src, dst, 1, dim, dim+1);
+    set_corner(dim-1, src, dst, dim-2, dim+dim-2, dim+dim-1);
+    set_corner(RIDX(dim-1, 0, dim), src, dst, RIDX(dim-1, 1, dim), RIDX(dim-2, 0, dim), RIDX(dim-2, 1, dim));
+    set_corner(RIDX(dim-1, dim-1, dim), src, dst, RIDX(dim-1, dim-2, dim), RIDX(dim-2, dim-2, dim), RIDX(dim-2, dim-1, dim));
+    // 处理四个边
+    for(int j = 1; j <= dim-2; j++){
+        set_top(dim, src, dst, j);
+        set_bottom(dim, src, dst, dim*dim-dim+j);
+        set_left(dim, src, dst, j*dim);
+        set_right(dim, src, dst, j*dim+dim-1);
     }
+    // 中间部分
+    for(int i = 1; i <= dim-2; i++){
+        for(int j = 1; j <= dim-2; j++){
+            set_in(dim, src, dst, i*dim+j);
+        }
+    }    
 }
 
 

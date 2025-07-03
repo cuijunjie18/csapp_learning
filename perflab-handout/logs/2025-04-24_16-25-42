@@ -1,0 +1,33 @@
+Teamname: heaven
+Member 1: cjj
+Email 1: 2871843852@qq.com
+Member 2: 666
+Email 2: 666@qq.com
+
+Rotate: Version = naive_rotate: Naive baseline implementation:
+Dim		64	128	256	512	1024	Mean
+Your CPEs	1.0	1.3	3.7	5.0	7.9
+Baseline CPEs	14.7	40.1	46.4	65.9	94.5
+Speedup		15.1	29.9	12.4	13.3	12.0	15.5
+
+Rotate: Version = rotate: 8 x 1 loop expand:
+Dim		64	128	256	512	1024	Mean
+Your CPEs	1.0	1.2	1.2	1.7	6.2
+Baseline CPEs	14.7	40.1	46.4	65.9	94.5
+Speedup		14.8	33.9	37.6	38.1	15.2	25.6
+
+Smooth: Version = smooth: 8 x 1 loop expand:
+Dim		32	64	128	256	512	Mean
+Your CPEs	23.4	23.9	23.6	23.5	24.0
+Baseline CPEs	695.0	698.0	702.0	717.0	722.0
+Speedup		29.7	29.2	29.8	30.5	30.0	29.8
+
+Smooth: Version = naive_smooth: Naive baseline implementation:
+Dim		32	64	128	256	512	Mean
+Your CPEs	18.5	19.2	18.0	17.9	18.0
+Baseline CPEs	695.0	698.0	702.0	717.0	722.0
+Speedup		37.5	36.4	39.1	40.0	40.1	38.6
+
+Summary of Your Best Scores:
+  Rotate: 25.6 (rotate: 8 x 1 loop expand)
+  Smooth: 38.6 (naive_smooth: Naive baseline implementation)
